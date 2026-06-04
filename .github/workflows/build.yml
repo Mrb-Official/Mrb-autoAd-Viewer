@@ -1,6 +1,5 @@
 name: Build Android APK
 
-# Ye action tab chalega jab tu 'main' branch par code push karega
 on:
   push:
     branches: [ "main" ]
@@ -14,11 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # Yahan humne Java ka version update kar diya hai jo aapke code aur Gradle ke sath set baithega
     - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
-        distribution: 'temurin'
+        distribution: 'zulu' # Temurin ki jagah Zulu standard use kar rahe hain
 
     - name: Make gradlew executable
       run: chmod +x gradlew
