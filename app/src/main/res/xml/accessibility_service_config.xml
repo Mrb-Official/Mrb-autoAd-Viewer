@@ -5,5 +5,4 @@
     android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
     android:canRetrieveWindowContent="true"
     android:canPerformGestures="true"
-    android:notificationTimeout="100"
-    android:description="Mrb Auto Ad Watcher - Clicks ads automatically" />
+    android:notificationTimeout="100" />
