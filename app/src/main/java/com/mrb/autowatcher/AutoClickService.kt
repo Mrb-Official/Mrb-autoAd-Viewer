@@ -8,7 +8,7 @@ import android.util.Log
 class AutoClickService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Current screen ki UI details uthao
+        // Current screen ki UI details uthao ur commit karo
         val rootNode = rootInActiveWindow ?: return
 
         // Wo words jo ads/videos band ya start karne ke liye aate hain
