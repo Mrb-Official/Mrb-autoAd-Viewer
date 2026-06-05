@@ -10,12 +10,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // App khulte hi user ko instruction do
-        Toast.makeText(this, "Accessibility Settings me jake 'Auto Ad Watcher' ON karo", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Accessibility Settings me jake 'Auto Ad Watcher' ya 'Mrb-autoAd-Viewer' ko ON karo", Toast.LENGTH_LONG).show()
         
-        // Direct phone ki Accessibility Settings open kar do taaki seedha ON kar sake
-        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
         startActivity(intent)
-        finish() // Settings khulte hi app ka UI band kar do (background chalne do)
+        finish() 
     }
 }
