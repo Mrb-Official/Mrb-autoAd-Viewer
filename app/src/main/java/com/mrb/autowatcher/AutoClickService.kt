@@ -9,63 +9,73 @@ import android.util.Log
 class AutoClickService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event == null) return
+
+        // System apps aur launcher ko block rakhenge taaki phone khud se pagal na ho
+        val currentPackage = event.packageName?.toString() ?: ""
+        if (currentPackage.contains("android.launcher") || 
+            currentPackage.contains("com.google.android.googlequicksearchbox") || 
+            currentPackage.contains("com.android.systemui") || 
+            currentPackage.contains("com.android.settings")) {
+            return 
+        }
+
         val rootNode = rootInActiveWindow ?: return
-        
-        // Pure UI tree ko scan karo
         scanAndClick(rootNode)
     }
 
     private fun scanAndClick(node: AccessibilityNodeInfo?) {
         if (node == null) return
 
-        // 1. Text ya Description se check karo (Case Insensitive + Contains match)
-        val text = node.text?.toString()?.lowercase() ?: ""
-        val desc = node.contentDescription?.toString()?.lowercase() ?: ""
+        val text = node.text?.toString()?.lowercase()?.trim() ?: ""
+        val desc = node.contentDescription?.toString()?.lowercase()?.trim() ?: ""
+        val viewId = node.viewIdResourceName?.lowercase() ?: ""
         
-        val targets = listOf("close", "skip", "watch ad", "claim", "reward", "start", "dismiss", "✕", "x")
+        val targetWords = listOf("close", "skip", "skip ad", "watch ad", "claim", "reward", "dismiss", "✕", "dismiss")
         var shouldClick = false
 
-        for (target in targets) {
-            if (text.contains(target) || desc.contains(target)) {
+        // Rule 1: Agar text, description ya view ID mein koi bhi ad-closing word match ho jaye
+        for (target in targetWords) {
+            if (text == target || desc == target || text.contains("skip") || viewId.contains("close") || viewId.contains("skip")) {
                 shouldClick = true
-                Log.d("AutoAdWatcher", "Target word mil gaya: $target (Text: $text, Desc: $desc)")
+                Log.d("AutoAdWatcher", "Pakka Ad Button pakda gaya: $target")
                 break
             }
         }
 
-        // 2. Bada Tod: Agar text nahi mila par Screen ke Top-Right/Top-Left mein chota sa button hai (Spoofing Bypass)
+        // Rule 2: AJEEB BUTTONS KA TOD (No name, no text, but small clickable corners)
         if (!shouldClick) {
             val bounds = Rect()
             node.getBoundsInScreen(bounds)
-            val width = bounds.width()
-            val height = bounds.height()
-            
-            // Agar element chota hai (jaise cross icon) aur screen ke top corners mein hai
-            if (width in 40..150 && height in 40..150 && bounds.top < 200) {
-                // Kisi invisible ya hidden square close button ko pakadne ke liye
+            val w = bounds.width()
+            val h = bounds.height()
+
+            // Agar koi button chota sa hai (40px se 140px ke beech), aur screen ke top 20% area mein hai
+            // Aur uspar koi text nahi hai (yaani sirf icon ya invisible button hai)
+            if (w in 40..140 && h in 40..140 && bounds.top < 220) {
                 if (node.isClickable || node.parent?.isClickable == true) {
                     shouldClick = true
-                    Log.d("AutoAdWatcher", "Corner ad button pakda gaya coordinates se!")
+                    Log.d("AutoAdWatcher", "Ajeeb Bina-Naam wala close button pakda coordinates se!")
                 }
             }
         }
 
-        // Click Action Fire Karo
+        // Click Action Trigger
         if (shouldClick) {
-            // Agar node khud clickable nahi hai toh uske baap (parent) ko click karo
             var clickTarget = node
+            // Agar main node clickable nahi hai, toh uske clickable parent (baap) tak jao
             while (clickTarget != null && !clickTarget.isClickable) {
                 clickTarget = clickTarget.parent
             }
             
             if (clickTarget != null && clickTarget.isClickable) {
                 clickTarget.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                Log.d("AutoAdWatcher", "Successfully clicked on target!")
-                return // Ek baar click ho gaya toh is event ka kaam khatam
+                Log.d("AutoAdWatcher", "Ajeeb button par Successfully auto-click maara!")
+                return 
             }
         }
 
-        // Bachon ko scan karo (Recursive Tree Walk)
+        // Poore UI tree ke baki bachon ko check karo
         for (i in 0 until node.childCount) {
             scanAndClick(node.getChild(i))
         }
