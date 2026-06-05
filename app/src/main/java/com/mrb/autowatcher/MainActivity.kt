@@ -13,11 +13,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Ek simple dynamic layout bana rahe hain bina XML ke jhanjhat ke
+        // Dynamic layout generation
         val layout = android.widget.LinearLayout(this).apply {
             orientation = android.widget.LinearLayout.VERTICAL
             gravity = android.view.Gravity.CENTER
-            padding = 50
+            setPadding(50, 50, 50, 50) // Galti yahan thi, ab sahi kar di hai
         }
 
         val statusText = android.widget.TextView(this).apply {
@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnToggle.setOnClickListener {
-            // User ko direct accessibility settings mein bhejo toggle karne ke
             Toast.makeText(this, "List me se 'Mrb-autoAd-Viewer' select karke ON/OFF karein", Toast.LENGTH_LONG).show()
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -49,12 +48,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Jab user settings se wapas aaye toh UI refresh ho jaye
+        // Fresh state reload
+        val serviceRunning = isServiceRunning()
         setContentView(null)
         onCreate(null)
     }
 
-    // Check karne ke liye ki service sach mein background mein active hai ya nahi
     private fun isServiceRunning(): Boolean {
         val serviceName = "${packageName}/${AutoClickService::class.java.name}"
         val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
